@@ -252,10 +252,12 @@
     borderRadius = 5;
     borderSize = 2;
     textColor = "#cdd6f4";
-    extraConfig = ''
-      [urgency=high]
-      border-color=#f38ba8
-    '';
+    # Using settings instead of extraConfig as suggested by error
+    settings = {
+      "urgency=high" = {
+        border-color = "#f38ba8";
+      };
+    };
   };
   
   # Configure environment variables
@@ -330,5 +332,4 @@
       }
     '';
   };
-
 }

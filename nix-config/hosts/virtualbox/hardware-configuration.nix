@@ -19,17 +19,16 @@
 
   # Virtualbox-specific settings
   virtualisation.virtualbox.guest.enable = true;
+  # Explicitly disable X11 for VirtualBox guest
+  virtualisation.virtualbox.guest.x11 = false;
 
   # VirtualBox typically doesn't need complicated hardware optimizations
   powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
 
-  # Enable auto-detection of the display
-  services.xserver.videoDrivers = [ "virtualbox" "vmware" "qxl" ];
-  
-  # Hardware acceleration
+  # Hardware acceleration without the driSupport flag
   hardware.opengl = {
     enable = true;
-    driSupport = true;
+    # Removed driSupport option as mentioned in error
   };
 
   # Network configuration (typically DHCP for VirtualBox)

@@ -33,7 +33,7 @@
       
       # Other
       papirus-icon-theme # Nice icon theme
-      gnome.adwaita-icon-theme
+      adwaita-icon-theme # Changed from gnome.adwaita-icon-theme
     ];
     
     # Create default configuration files
@@ -72,7 +72,7 @@
     enable = true;
     theme = {
       name = "Adwaita-dark";
-      package = pkgs.gnome.gnome-themes-extra;
+      package = pkgs.adwaita-gtk-theme; # Changed from gnome.gnome-themes-extra
     };
     iconTheme = {
       name = "Papirus-Dark";
@@ -117,7 +117,8 @@
     # GPG agent for password management
     gpg-agent = {
       enable = true;
-      pinentryFlavor = "gtk2";
+      # Changed from pinentryFlavor to pinentryPackage as suggested by error
+      pinentryPackage = pkgs.pinentry-gtk2;
       enableSshSupport = true;
     };
   };

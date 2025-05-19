@@ -49,8 +49,7 @@
     # Graphics - adjust based on your GPU
     opengl = {
       enable = true;
-      driSupport = true;
-      driSupport32Bit = true;
+      # Removed driSupport and driSupport32Bit due to the error
     };
   };
 

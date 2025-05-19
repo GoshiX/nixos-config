@@ -1,7 +1,7 @@
 { config, pkgs, ... }:
 {
-  # Enable sound with PipeWire (for modern Wayland support)
-  sound.enable = true;
+  # Audio configuration with PipeWire (for modern Wayland support)
+  # sound.enable = true; # Removed as suggested by error message
   hardware.pulseaudio.enable = false;  # Disable PulseAudio (conflicts with PipeWire)
   services.pipewire = {
     enable = true;
@@ -36,8 +36,8 @@
   # Hardware (GPU, input, etc.)
   hardware.opengl = {
     enable = true;
-    driSupport = true;
-    driSupport32Bit = true;     # For 32-bit apps (e.g., Steam)
+    # driSupport = true;        # Removed as suggested by error message
+    # driSupport32Bit = true;   # Removed as suggested by error message
   };
 
   # Locale and language settings
@@ -64,7 +64,11 @@
     isNormalUser = true;
     extraGroups = [ "wheel" "networkmanager" "video" "audio" ];
     shell = pkgs.zsh;
+    ignoreShellProgramCheck = false; # Will require programs.zsh.enable = true;
   };
+
+  # Enable Zsh globally
+  programs.zsh.enable = true;
 
   # System-wide packages (no GUI apps - those are in apps.nix)
   environment.systemPackages = with pkgs; [
@@ -98,7 +102,7 @@
 
   # Enable nix flakes
   nix = {
-    package = pkgs.nixFlakes;
+    package = pkgs.nixVersions.stable; # Changed from pkgs.nixFlakes as requested
     extraOptions = ''
       experimental-features = nix-command flakes
     '';

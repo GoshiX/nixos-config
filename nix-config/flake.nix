@@ -25,7 +25,8 @@
         nixpkgs.lib.nixosSystem {
           inherit system;
           modules = [
-            (./hosts + "/${hostName}.nix")
+            # Point to the new configuration.nix file inside the host directory
+            (./hosts + "/${hostName}/configuration.nix")
             home-manager.nixosModules.home-manager
             {
               home-manager = {

@@ -1,23 +1,31 @@
 # Modular NixOS Configuration
 
-This is a beginner-friendly modular NixOS configuration featuring Sway, Neovim, and Zsh. This setup provides a clean, organized way to manage your system configuration with separate modules for different aspects of the system.
+This is a beginner-friendly modular NixOS configuration featuring a choice between Sway (Wayland tiling window manager) or KDE Plasma (Wayland desktop environment), plus Neovim and Zsh. This setup provides a clean, organized way to manage your system configuration with separate modules for different aspects of the system.
 
 ## Features
 
-- **Window Manager**: Sway (Wayland-based tiling window manager)
+- **Window Managers/Desktop Environments**:
+  - Sway (Wayland-based tiling window manager)
+  - KDE Plasma 6 (Wayland-based desktop environment)
 - **Editor**: Neovim with sensible defaults and useful plugins
 - **Shell**: Zsh with useful aliases and integrations
 - **Multiple Host Support**: Configurations for both physical laptop and VirtualBox VM
 - **Modular Design**: Clean separation of concerns with specialized configuration files
+- **Wayland Only**: No X11 dependencies at all for maximum modern compatibility
 
 ## Directory Structure
 
 - `flake.nix`: The entry point for the configuration
 - `hosts/`: Contains host-specific configurations
-  - `laptop.nix` & `laptop/hardware-configuration.nix`: Configuration for physical laptop
-  - `virtualbox.nix` & `virtualbox/hardware-configuration.nix`: Configuration for VirtualBox VM
+  - `laptop/`: Configuration for physical laptop
+    - `configuration.nix`: Main configuration
+    - `hardware-configuration.nix`: Hardware-specific settings
+  - `virtualbox/`: Configuration for VirtualBox VM
+    - `configuration.nix`: Main configuration
+    - `hardware-configuration.nix`: Hardware-specific settings
 - `modules/`: Contains system-wide modules
   - `apps.nix`: GUI applications
+  - `plasma.nix`: KDE Plasma desktop environment
   - `power-save.nix`: Power management settings (for laptops)
   - `sway.nix`: Sway window manager system configuration
   - `system.nix`: Base system configuration
@@ -70,12 +78,12 @@ This is a beginner-friendly modular NixOS configuration featuring Sway, Neovim, 
    ```bash
    nix-shell -p git
    git clone https://github.com/yourusername/nixos-config.git /mnt/etc/nixos
-   cd /mnt/etc/nixos/nix-config
+   cd /mnt/etc/nixos
    ```
 
 3. Install NixOS using the virtualbox configuration:
    ```bash
-   nixos-install --flake .#virtualbox
+   nixos-install --flake ./nix-config#virtualbox
    ```
 
 4. Set the root password when prompted
@@ -89,7 +97,7 @@ This is a beginner-friendly modular NixOS configuration featuring Sway, Neovim, 
 
 1. Login with username `egrapa` and the password you set during installation
 
-2. Enjoy your new Sway desktop! Here are some basic keybindings:
+2. Enjoy your new desktop! Default is Sway with these basic keybindings:
    - `Super+Return`: Open terminal (Kitty)
    - `Super+d`: Open application launcher (Wofi)
    - `Super+Shift+q`: Close focused window
@@ -104,8 +112,56 @@ To use this configuration on a physical laptop:
 
 2. Follow the same installation steps, but adjust the partitioning for your disk setup, and use:
    ```bash
-   nixos-install --flake .#laptop
+   nixos-install --flake ./nix-config#laptop
    ```
+
+## Switching Desktop Environments
+
+This configuration supports both Sway (tiling window manager) and KDE Plasma (desktop environment). To switch:
+
+1. Edit your host's configuration.nix file (in `hosts/virtualbox/configuration.nix` or `hosts/laptop/configuration.nix`):
+
+   For Sway:
+   ```nix
+   imports = [
+     # ...other imports
+     ../../modules/sway.nix
+     # ...other modules
+   ];
+   ```
+
+   For KDE Plasma:
+   ```nix
+   imports = [
+     # ...other imports
+     ../../modules/plasma.nix
+     # ...other modules
+   ];
+   ```
+
+2. Apply the changes:
+   ```bash
+   sudo nixos-rebuild switch --flake /etc/nixos/nix-config#virtualbox
+   # Or for laptop:
+   sudo nixos-rebuild switch --flake /etc/nixos/nix-config#laptop
+   ```
+
+3. Log out and select your chosen environment from the SDDM login screen
+
+## Home Manager Integration
+
+This configuration uses Home Manager (integrated as a NixOS module) to manage user-level configurations. This means:
+
+1. System-level configuration is in the `modules/` directory
+2. User-level configuration is in the `home/` directory
+3. Changes to both apply with a single `nixos-rebuild switch` command
+
+To add a new Home Manager module:
+
+1. Create a new file in the `home/` directory (e.g., `home/firefox.nix`)
+2. Add your configuration
+3. Import it in `home/home.nix`
+4. Apply changes with `nixos-rebuild switch`
 
 ## Customizing the Configuration
 
@@ -135,8 +191,9 @@ Replace `virtualbox` with `laptop` if you're on a physical laptop.
 ### Display Issues in VirtualBox
 
 If you have issues with the display in VirtualBox:
-- Try adding `virtualisation.virtualbox.guest.x11 = true;` to `hosts/virtualbox.nix`
-- Make sure 3D acceleration is enabled in VirtualBox settings
+- Make sure you have at least 128MB video memory allocated
+- Try increasing video memory to 256MB
+- VirtualBox guest additions should be properly configured already
 
 ### Sway Not Starting
 
@@ -145,4 +202,10 @@ Check Sway logs with:
 journalctl -xe
 ```
 
-Ensure that your hardware is properly configured in the corresponding hardware-configuration.nix file.
+Make sure you have enabled the SDDM display manager and that Wayland is properly configured.
+
+### KDE Plasma Issues
+
+If you have issues with KDE Plasma:
+- Make sure you've enabled Plasma 6 (not 5) as it is Wayland-based by default
+- Check if the proper imports are present in your host configuration
