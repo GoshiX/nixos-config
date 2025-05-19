@@ -1,6 +1,6 @@
 { config, pkgs, ... }:
 {
-  # Enable sound (PipeWire for modern Wayland support)
+  # Enable sound with PipeWire (for modern Wayland support)
   sound.enable = true;
   hardware.pulseaudio.enable = false;  # Disable PulseAudio (conflicts with PipeWire)
   services.pipewire = {
@@ -24,10 +24,9 @@
       };
     };
   };
-  services.blueman.enable = false;  # Disable GUI (configured later in Home Manager)
+  services.blueman.enable = true;  # Enable GUI for Bluetooth
 
-  # Wayland essentials (no DM/WM here!)
-  programs.sway.enable = true;  # Required for Wayland compatibility
+  # Wayland essentials - these will be configured in sway.nix
   xdg.portal = {
     enable = true;
     wlr.enable = true;          # Screen sharing for Wayland
@@ -41,9 +40,10 @@
     driSupport32Bit = true;     # For 32-bit apps (e.g., Steam)
   };
 
+  # Locale and language settings
   i18n = {
     defaultLocale = "en_US.UTF-8";
-    supportedLocales = [ "en_US.UTF-8/UTF-8"];
+    supportedLocales = [ "en_US.UTF-8/UTF-8" ];
   };
 
   # Set the time zone
@@ -59,13 +59,14 @@
   security.pam.services.swaylock = {};
   security.rtkit.enable = true;  # Realtime priority for PipeWire
 
-  # Users (minimal setup)
+  # Users (minimal setup - will be extended by other modules as needed)
   users.users.egrapa = {
     isNormalUser = true;
     extraGroups = [ "wheel" "networkmanager" "video" "audio" ];
+    shell = pkgs.zsh;
   };
 
-  # System-wide packages (no GUI apps!)
+  # System-wide packages (no GUI apps - those are in apps.nix)
   environment.systemPackages = with pkgs; [
     git
     wget
@@ -74,10 +75,42 @@
     glib                # GTK/Wayland utils
   ];
 
-  # Virtualization (disabled here, enabled in `virtualisation.nix`)
-  virtualisation.docker.enable = false;
-  virtualisation.libvirtd.enable = false;
+  # Enable fonts
+  fonts = {
+    enableDefaultPackages = true;
+    packages = with pkgs; [
+      fira-code
+      fira-code-symbols
+      noto-fonts
+      noto-fonts-cjk
+      noto-fonts-emoji
+      liberation_ttf
+      (nerdfonts.override { fonts = [ "FiraCode" "DroidSansMono" ]; })
+    ];
+    fontconfig = {
+      defaultFonts = {
+        monospace = [ "Fira Code" ];
+        sansSerif = [ "Noto Sans" ];
+        serif = [ "Noto Serif" ];
+      };
+    };
+  };
 
-  # System state version (required)
-  system.stateVersion = "23.11";
+  # Enable nix flakes
+  nix = {
+    package = pkgs.nixFlakes;
+    extraOptions = ''
+      experimental-features = nix-command flakes
+    '';
+    settings = {
+      auto-optimise-store = true;
+    };
+  };
+
+  # Automatically garbage collect old generations
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 14d";
+  };
 }

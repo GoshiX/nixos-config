@@ -7,19 +7,12 @@
     syntaxHighlighting.enable = true;
     enableCompletion = true;
 
-    # Set as default shell
-    # shellInit = ''
-    #   # Set ZSH as default shell
-    #   [ -f ~/.zshrc ] || touch ~/.zshrc
-    #   export SHELL=${pkgs.zsh}/bin/zsh
-    # '';
-
     # Basic configuration
-    # ohMyZsh = {
-    #   enable = true;
-    #   plugins = [ "git" "sudo" "fzf" "direnv" ];
-    #   theme = "robbyrussell"; # Simple classic theme
-    # };
+    oh-my-zsh = {
+      enable = true;
+      plugins = [ "git" "sudo" "fzf" "direnv" ];
+      theme = "robbyrussell"; # Simple classic theme
+    };
 
     # Local configuration
     initExtra = ''
@@ -83,11 +76,6 @@
     '';
   };
 
-  # Ensure zsh is default shell
-  users..users.egrapa = {
-    shell = pkgs.zsh;
-  };
-
   # Required packages
   home.packages = with pkgs; [
     bat
@@ -95,10 +83,11 @@
     git
     man-pages
     man-pages-posix
+    zsh-history-substring-search
   ];
 
   # SSH agent service
-  # programs.ssh.startAgent = true;
+  services.ssh-agent.enable = true;
   services.gpg-agent = {
     enable = true;
     enableZshIntegration = true;

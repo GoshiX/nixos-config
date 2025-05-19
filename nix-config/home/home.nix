@@ -9,39 +9,109 @@
 
   # Basic Home Manager settings
   home = {
-    username = "egrapa";  # Replace with your actual username
+    username = "egrapa";
     homeDirectory = "/home/egrapa";
-    stateVersion = "23.11";     # Match your NixOS version
+    stateVersion = "23.11";
 
     # Packages that should be installed specifically for the user
     packages = with pkgs; [
-      # Add any user-specific packages here
-      # (most should be in system.nix or utilities.nix)
+      # Development tools
+      vscode
+      firefox  # Developer-friendly browser
+      
+      # Utilities
+      ripgrep
+      fd
+      bat
+      exa  # Modern ls replacement
+      htop
+      bottom # Modern system monitor
+      
+      # Media
+      mpv
+      feh
+      
+      # Other
+      papirus-icon-theme # Nice icon theme
+      gnome.adwaita-icon-theme
     ];
+    
+    # Create default configuration files
+    file = {
+      # Background image for Sway
+      ".background".source = pkgs.fetchurl {
+        url = "https://raw.githubusercontent.com/NixOS/nixos-artwork/master/wallpapers/nix-wallpaper-simple-blue.png";
+        sha256 = "sha256-H59m1Vzr+76JJyFqiJsxf1ZMGL0SBhBXzq1CqxJJv/k=";
+      };
+      
+      # Add custom scripts directory
+      ".local/bin" = {
+        source = pkgs.writeTextDir "bin/.keep" "";
+        recursive = true;
+      };
+    };
   };
 
   # Enable Home Manager
   programs.home-manager.enable = true;
 
-  # GTK/Qt theming (optional but recommended for Sway)
-  gtk.enable = true;
-  qt.enable = true;
+  # Configure Git
+  programs.git = {
+    enable = true;
+    userName = "User Name";  # Change this
+    userEmail = "user@example.com";  # Change this
+    extraConfig = {
+      init.defaultBranch = "main";
+      pull.rebase = true;
+      push.autoSetupRemote = true;
+    };
+  };
+
+  # GTK/Qt theming (required for Sway)
+  gtk = {
+    enable = true;
+    theme = {
+      name = "Adwaita-dark";
+      package = pkgs.gnome.gnome-themes-extra;
+    };
+    iconTheme = {
+      name = "Papirus-Dark";
+      package = pkgs.papirus-icon-theme;
+    };
+  };
+  
+  qt = {
+    enable = true;
+    platformTheme = "gtk";
+    style = {
+      name = "adwaita-dark";
+      package = pkgs.adwaita-qt;
+    };
+  };
 
   # XDG Desktop Portal configuration (required for Wayland)
   xdg = {
     enable = true;
-    portal = {
+    mimeApps = {
       enable = true;
-      extraPortals = with pkgs; [
-        xdg-desktop-portal-wlr
-        xdg-desktop-portal-gtk
-      ];
+      defaultApplications = {
+        "text/plain" = "nvim.desktop";
+        "application/pdf" = "org.pwmt.zathura.desktop";
+        "image/*" = "imv.desktop";
+        "video/*" = "mpv.desktop";
+        "x-scheme-handler/http" = "firefox.desktop";
+        "x-scheme-handler/https" = "firefox.desktop";
+      };
+    };
+    userDirs = {
+      enable = true;
+      createDirectories = true;
     };
   };
 
   # Systemd services for user session
   services = {
-    # SSH agent (complements your zsh.nix setup)
+    # SSH agent service
     ssh-agent.enable = true;
 
     # GPG agent for password management
@@ -52,21 +122,20 @@
     };
   };
 
-  # Dotfile management
-  # home.file = {
-  #   # Example: Manage a specific config file
-  #   ".config/example.conf".text = ''
-  #     # Config file content
-  #   '';
-  # };
-
   # Environment variables
   home.sessionVariables = {
     EDITOR = "nvim";
     VISUAL = "nvim";
     TERMINAL = "kitty";
     BROWSER = "firefox";
+    
+    # Wayland specific
+    MOZ_ENABLE_WAYLAND = "1";
+    QT_QPA_PLATFORM = "wayland";
+    SDL_VIDEODRIVER = "wayland";
+    _JAVA_AWT_WM_NONREPARENTING = "1";
   };
-
-  # Let Home Manager install and manage itself
+  
+  # Directory for temporary files
+  xdg.cacheHome = "${config.home.homeDirectory}/.cache";
 }

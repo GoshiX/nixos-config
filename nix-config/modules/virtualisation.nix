@@ -21,6 +21,12 @@
     };
   };
 
+  # VirtualBox-specific settings when running as a guest
+  virtualisation.virtualbox.guest = {
+    enable = true;
+    x11 = false;  # We're using Wayland, not X11
+  };
+
   # Add user to required groups
   users.users.egrapa.extraGroups = [ "docker" "libvirtd" "kvm" ];
 
@@ -29,5 +35,13 @@
     docker-compose  # Manage multi-container apps
     virt-manager    # GUI for QEMU/KVM
     qemu            # CLI tools
+    spice-gtk       # Better VM display integration
+    virt-viewer     # Simple VM viewer
   ];
+  
+  # Firewall rules for VM networking
+  networking.firewall = {
+    trustedInterfaces = [ "virbr0" ];  # libvirt bridge interface
+    allowedTCPPorts = [ 5900 5901 ];  # VNC ports (for remote viewing)
+  };
 }
